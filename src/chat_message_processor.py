@@ -60,6 +60,7 @@ def get_audio_file_link(audio_message_id):
     # Construct the URL with the audio message ID
     url = f"{api_url_audio}/{audio_message_id}/"
     print(url)
+    print(headers)
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()

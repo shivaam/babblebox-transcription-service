@@ -5,13 +5,13 @@ metadata:
     kompose.cmd: kompose convert -o k8s
     kompose.version: 1.32.0 (HEAD)
   labels:
-    io.kompose.service: whisper-app
-  name: whisper-app
+    io.kompose.service: babblebox-transcription-service
+  name: babblebox-transcription-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: whisper-app
+      io.kompose.service: babblebox-transcription-service
   strategy:
     type: Recreate
   template:
@@ -20,8 +20,8 @@ spec:
         kompose.cmd: kompose convert -o k8s
         kompose.version: 1.32.0 (HEAD)
       labels:
-        io.kompose.network/whisper-consumer-default: "true"
-        io.kompose.service: whisper-app
+        io.kompose.network/babblebox-transcription-service-default: "true"
+        io.kompose.service: babblebox-transcription-service
     spec:
       securityContext:
         runAsUser: 1001
@@ -29,26 +29,19 @@ spec:
         fsGroup: 1001
       containers:
         - image: 767397752164.dkr.ecr.us-east-1.amazonaws.com/babblebox_transcription_service
-          name: babblebox_transcription_service
-          resources:
-            requests:
-              memory: "4Gi" # Initial amount of memory Kubernetes should reserve
-              cpu: "2"  # Example CPU limit
-            limits:
-              memory: "8Gi" # Maximum amount of memory your container can use
-              cpu: "4"  # Example CPU limit
+          name: babblebox-transcription-service
           env:
-            -- name: BABBLEBOX_TRANSCRIPTION_API_KEY
+            - name: BABBLEBOX_TRANSCRIPTION_API_KEY
               valueFrom:
                 configMapKeyRef:
                   key: BABBLEBOX_TRANSCRIPTION_API_KEY
                   name: djangoc
-            -- name: BABBLEBOX_URL
+            - name: BABBLEBOX_URL
               valueFrom:
                 configMapKeyRef:
                   key: BABBLEBOX_URL
                   name: djangoc
-            -- name: BABBLEBOX_TRANSCRIPTION_API_KEY
+            - name: PULSAR_URL
               valueFrom:
                 configMapKeyRef:
                   key: PULSAR_URL
@@ -56,8 +49,6 @@ spec:
           volumeMounts:
             - mountPath: /tmp/whisper
               name: whisper-models
-      nodeSelector:
-        eks.amazonaws.com/nodegroup: eksplusardemo-ng2-public2
       restartPolicy: Always
       volumes:
         - name: whisper-models
