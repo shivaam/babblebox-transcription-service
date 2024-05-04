@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -o k8s
+    kompose.version: 1.32.0 (HEAD)
+  labels:
+    io.kompose.service: whisper-app
+  name: whisper-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: whisper-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -o k8s
+        kompose.version: 1.32.0 (HEAD)
+      labels:
+        io.kompose.network/whisper-consumer-default: "true"
+        io.kompose.service: whisper-app
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - image: 767397752164.dkr.ecr.us-east-1.amazonaws.com/babblebox_transcription_service
+          name: babblebox_transcription_service
+          resources:
+            requests:
+              memory: "4Gi" # Initial amount of memory Kubernetes should reserve
+              cpu: "2"  # Example CPU limit
+            limits:
+              memory: "8Gi" # Maximum amount of memory your container can use
+              cpu: "4"  # Example CPU limit
+          env:
+            -- name: BABBLEBOX_TRANSCRIPTION_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: BABBLEBOX_TRANSCRIPTION_API_KEY
+                  name: djangoc
+            -- name: BABBLEBOX_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: BABBLEBOX_URL
+                  name: djangoc
+            -- name: BABBLEBOX_TRANSCRIPTION_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: PULSAR_URL
+                  name: djangoc
+          volumeMounts:
+            - mountPath: /tmp/whisper
+              name: whisper-models
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: eksplusardemo-ng2-public2
+      restartPolicy: Always
+      volumes:
+        - name: whisper-models
+          persistentVolumeClaim:
+            claimName: whisper-models

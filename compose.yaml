@@ -1,0 +1,18 @@
+version: '3.8'
+
+volumes:
+  whisper-models: {}
+
+services:
+  whisper-app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    #image: ${DOCKER_REGISTRY}/babblebox_production_django
+    image: ${DOCKER_REGISTRY}/babblebox_transcription_service  # Replace with your Docker image name
+    volumes:
+      - whisper-models:/tmp/whisper
+    deploy:
+      resources:
+        limits:
+          memory: 4G  # Set an appropriate limit

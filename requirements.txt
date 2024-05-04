@@ -1,0 +1,4 @@
+avro==1.10.2
+pulsar_client==3.4.0
+faster_whisper==1.0.1
+requests==2.31.0
